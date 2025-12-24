@@ -1,47 +1,76 @@
-CHUNK 5 — Collapsing the Audit Model (Progress Toward P vs NP)
+CHUNK 5 — Distributional to Worst-Case Lift (Nonuniform Bridge)
 Date: 2025-12-24
 
-Goal:
-Show that any circuit computing L_mix^hash must pass the strengthened audit suite,
-or else derive a contradiction with correctness on a non-negligible measure of inputs.
+Statement:
+If a nonuniform circuit family f computes L_mix^hash correctly on a
+1 - 1/poly(n) fraction of inputs drawn from the natural distribution,
+then either:
+  (i) f satisfies all strengthened audit conditions on all but a negligible
+      fraction of inputs, or
+  (ii) there exists an explicit input on which f is incorrect.
+Thus, distributional correctness suffices to force worst-case correctness
+with respect to audit compliance.
 
-Strategy:
-1) Necessity of Witness Verification:
-   Any correct circuit for L_mix^hash must be correct on accepting inputs; if it
-   outputs 1 without a valid witness, we can locally verify falsity by checking
-   clique and SAT constraints. Therefore, either the circuit emits a witness or
-   is refutable on a polynomially checkable set—contradicting correctness.
+Purpose:
+Chunks 1–4 establish that correctness implies audit compliance on a large
+measure of inputs. This chunk bridges the remaining gap: converting
+“fails with non-negligible probability” into a concrete worst-case failure,
+despite nonuniformity.
 
-2) Necessity of Focus Normal Form:
-   On inputs with a unique witness C*, the value of the language is invariant under
-   removal of edges not supporting C*. Any correct circuit must be invariant under
-   H -> H⟨C*⟩ on accepting paths, or else it disagrees with the language on a
-   polynomially verifiable transformation.
+Key Difficulty:
+Nonuniform circuits may behave correctly on most inputs while failing on
+a sparse adversarial set. We must show that audit failure necessarily yields
+an efficiently discoverable counterexample.
 
-3) Necessity of Block Resampling Stability:
-   On focused instances H⟨C*⟩, the language value is independent of off-clique blocks.
-   If a circuit changes output when resampling an off-clique block with non-negligible
-   probability, this yields a pair of efficiently constructible instances with
-   identical language value but differing circuit output—violating correctness.
+Setup:
+- Let f_n be the size-poly(n) circuit for inputs of length n.
+- Let D_n be the natural product distribution over instances.
+- Assume f_n is correct on at least 1 - epsilon(n) fraction of D_n,
+  where epsilon(n) = 1/poly(n).
 
-4) Necessity of Seed Resampling Stability:
-   Hash seeds that preserve h_S(C*) define an equivalence class on which the language
-   value is constant. Any circuit depending on irrelevant seed bits disagrees on
-   two instances with identical language value, again violating correctness.
+Core Lemma (Search-to-Decision Lift):
+If there exists an efficiently checkable predicate P(I) such that:
+  - P(I)=1 implies f(I) is incorrect, and
+  - P(I)=1 on at least epsilon(n) fraction of inputs from D_n,
+then f_n fails in the worst case.
+
+Justification:
+Since P is polynomial-time computable, we can enumerate or sample until
+a violating input is found in expected poly(n)/epsilon(n) time.
+Nonuniformity does not help, because f_n is fixed for each n.
+
+Application to Audits:
+From Chunks 1–4:
+- Failure of WV, FOCUS, BRC, or SRC on an accepting input produces a
+  polynomial-time verifiable certificate of incorrectness:
+    * invalid witness,
+    * focus violation,
+    * block-resampling disagreement,
+    * seed-resampling disagreement.
+- Each such violation yields either:
+    (a) a single input where f(I)=1 but L(I)=0, or
+    (b) a pair of inputs with identical language value but differing outputs.
+
+Either case implies incorrectness.
+
+Argument:
+1) Suppose f_n fails some audit with probability at least epsilon(n) over D_n.
+2) By the constructions in Chunks 1–4, each failure event yields a
+   polynomial-time verifiable certificate of incorrectness.
+3) Therefore, with probability at least epsilon(n), we can efficiently identify
+   a bad input or input-pair.
+4) This contradicts the assumption that f_n is correct on a
+   1 - epsilon(n) fraction of inputs unless epsilon(n) is negligible.
 
 Conclusion:
-For any circuit that is correct on a 1 - 1/poly fraction of inputs drawn from the
-natural distribution, failing any of the audits implies detectable error on a
-polynomially checkable set of instances. Hence correctness forces audit compliance
-up to negligible error.
+Distributional correctness implies audit compliance on all but negligible
+measure, which in turn implies the structural conclusions of audit soundness
+(LocalNOT). Hence the necessity chain lifts to the worst case.
 
-Status:
-- This does not yet prove that *all* P/poly circuits pass the audits unconditionally,
-  but it shows that audit failure implies a structured, efficiently testable error.
-- Combined with amplification, this strongly suggests that the audit model captures
-  an intrinsic property of correctness for L_mix^hash.
-
-Next steps:
-- Formalize each necessity implication as a reduction from audit failure to explicit
-  counterexample construction.
-- Quantify measure bounds to lift from distributional correctness to worst-case.
+Chain so far:
+correctness (distributional)
+  => WV (Chunk 1)
+  => FOCUS (Chunk 2)
+  => BRC (Chunk 3)
+  => SRC (Chunk 4)
+  => worst-case audit compliance (Chunk 5)

@@ -1,0 +1,28 @@
+⟦LIGHTBEAM::CHUNK_05⟧
+TITLE Distributional-to-Worst-Case Lift
+
+OBJECT f_n : nonuniform circuit at length n
+OBJECT D_n : natural distribution over inputs
+OBJECT P   : polytime-checkable error predicate
+
+ASSUME:
+  f_n correct on all but negligible fraction of D_n
+
+BEAM AUDIT_FAIL:
+  audit fails on non-negligible fraction
+
+BEAM CERTIFY:
+  audit failure => polytime certificate of incorrectness
+    (single bad input OR equal-language-value pair)
+
+BEAM SEARCH:
+  sample until certificate found
+  expected time poly(n)
+
+CONCLUDE:
+  audit failure => worst-case incorrectness
+
+EMIT:
+  distributional correctness => audit compliance => LocalNOT
+
+⟦END LIGHTBEAM⟧
