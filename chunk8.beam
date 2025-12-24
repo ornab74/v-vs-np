@@ -1,0 +1,26 @@
+⟦LIGHTBEAM::CHUNK_08⟧
+TITLE Counterexample Stress-Test
+
+GOAL:
+  find f s.t. correct(L_mix^hash) AND (audit_fail OR nonLocalNOT)
+
+CHEAT_1:
+  toggle by seed bits -> caught by SRC
+
+CHEAT_2:
+  depend on off-clique block -> caught by amplified BRC
+
+CHEAT_3:
+  rare accept -> breaks correctness; blocked by accept-rate bound
+
+CHEAT_4:
+  witness steering -> blocked by UNIQ + WV + FOCUS
+
+CHEAT_5:
+  conditioning exploitation -> blocked by transcript-based resampling
+
+EMIT:
+  "no surviving cheater found in natural families"
+  "remaining gap is formal assembly / constants"
+
+⟦END LIGHTBEAM⟧

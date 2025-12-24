@@ -1,0 +1,64 @@
+CHUNK 8 — Counterexample Stress-Test (Cheater Search)
+Date: 2025-12-24
+
+Objective:
+Attempt to construct an explicit "cheater" circuit family f that:
+  (A) computes L_mix^hash correctly (or nearly correctly), yet
+  (B) violates one of the strengthened audits (WV/FOCUS/BRC/SRC/SPA), or
+  (C) passes the audits while remaining non-LocalNOT.
+
+Purpose:
+Stress-testing is essential: if a counterexample exists, it identifies the exact
+point where the audit model is too strong or the necessity direction is incomplete.
+If no counterexample can be constructed under clear assumptions, confidence rises
+and remaining gaps become sharply defined.
+
+Cheater design space:
+1) Seed-keyed toggle:
+   f(I) = L(I) XOR g(S_aux) for some auxiliary seed bits.
+   - Should fail SRC (detected immediately by seed resampling).
+2) Off-clique noise dependence:
+   On focused instances, flip output based on a parity of an off-clique block.
+   - Should fail amplified BRC (detected with high probability).
+3) Rare-acceptance masking:
+   Accept only when a hidden predicate holds (e.g., hash of entire input starts with zeros).
+   - Fails correctness unless the predicate correlates with language truth (it doesn't).
+   - Also defeated by acceptance-rate lower bound (Chunk 6).
+4) Witness-steering on multi-witness instances:
+   Output a witness clique that avoids later tests.
+   - Eliminated on UNIQ slices; in general caught by WV + focus.
+5) Correlation exploitation:
+   Attempt to exploit correlations between blocks introduced by conditioning on acceptance.
+   - Countered by defining audits on transcript distributions sampled independently of f
+     and by using product distributions for resampling steps.
+
+Result of stress test:
+All natural "cheater" constructions either:
+- become incorrect on a non-negligible fraction of instances, or
+- are detected by amplified audits, or
+- are blocked by UNIQ slicing and witness verification.
+
+Explicit attempted cheater examples (sketch):
+CHEAT_1 (seed toggle):
+  output = L(I) XOR (S_aux[0])
+  -> fails SRC with probability 1/2
+
+CHEAT_2 (off-clique parity):
+  output = L(I) XOR parity(vars in φ_i) for some i∉C*
+  -> fails BRC upon resampling φ_i with probability ~1/2
+
+CHEAT_3 (rare accept):
+  output 1 only if hash(input) begins with 0^k
+  -> rejects many true instances; fails correctness
+
+CHEAT_4 (witness-steer):
+  choose smallest-index witness clique
+  -> on UNIQ slices equals C*; otherwise still audited via focus/resampling
+
+Conclusion:
+No simple counterexample survives the full strengthened suite with amplification.
+Therefore the remaining open work is not "plugging leaks" but completing the final
+assembly: audit soundness => LocalNOT => monotone contradiction.
+
+Next:
+Chunk 9: Endgame assembly with parameter closure and final contradiction.

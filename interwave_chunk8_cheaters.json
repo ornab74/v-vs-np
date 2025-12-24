@@ -1,0 +1,27 @@
+{
+  "date": "2025-12-24",
+  "chunk": 8,
+  "attempts": [
+    {
+      "name": "CHEAT_1_seed_toggle",
+      "idea": "XOR with auxiliary seed bit",
+      "expected_detection": "SRC"
+    },
+    {
+      "name": "CHEAT_2_off_clique_parity",
+      "idea": "depend on parity of off-clique block",
+      "expected_detection": "BRC(amplified)"
+    },
+    {
+      "name": "CHEAT_3_rare_accept",
+      "idea": "accept only under rare global predicate",
+      "expected_detection": "correctness/accept-rate bound"
+    },
+    {
+      "name": "CHEAT_4_witness_steer",
+      "idea": "choose witness to dodge tests",
+      "expected_detection": "UNIQ+WV+FOCUS"
+    }
+  ],
+  "status": "no_survivor_found"
+}
