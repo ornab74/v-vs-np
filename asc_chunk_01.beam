@@ -1,0 +1,63 @@
+⟦LIGHTBEAM::ASC::CHUNK_1⟧
+# Goal: Define the audit game formally and map audits → LocalNOT.
+# This is the "spec layer" for ASC.
+
+OBJECT f
+  TYPE circuit_family
+  SIZE poly(n)
+  I/O  (H,Φ,S) -> bit
+  MAY_EMIT witness (C, assignments)
+
+OBJECT D
+  TYPE distribution_over_instances
+  NOTE block-product on Φ; independent blocks
+
+OBJECT T
+  TYPE auditor
+  POWER adaptive_queries
+  LIMIT poly(n) queries + polytime checks
+
+GAME AUDIT_SUITE:
+  SAMPLE I0 ~ D
+  QUERY f on I0 -> (b0,w0)
+  APPLY audits A1..A5 (may query f on related instances)
+  ACCEPT iff all audits accept
+
+AUDIT A1 WV (Witness Verification):
+  IF b0=1:
+    CHECK clique(C in H)
+    CHECK SAT(assignments satisfy φ_i for i in C)
+    CHECK hash_S(C)=0
+  ELSE PASS
+
+AUDIT A2 FOCUS (Clique-preserving normal form):
+  IF WV passes with clique C:
+    COMPUTE H⟨C⟩
+    QUERY f on (H⟨C⟩,Φ,S) -> b1
+    REQUIRE b1=b0
+
+AUDIT A3 BRC (Block Resampling Closure):
+  IF WV+FOCUS pass with clique C:
+    PICK i uniform in [B]\C
+    RESAMPLE φ_i -> φ_i'
+    QUERY f on (H⟨C⟩,Φ^{(i←i')},S) -> b2
+    REQUIRE b2=b0
+
+AUDIT A4 SRC (Seed Resampling Closure):
+  IF WV passes with clique C:
+    IDENTIFY seed bits J that do not affect hash_S(C)
+    RESAMPLE S[J] -> S'[J]
+    QUERY f on (H⟨C⟩,Φ,S') -> b3
+    REQUIRE b3=b0
+
+AUDIT A5 SPA (Star/Pair/Assoc):
+  RUN gadget family:
+    STAR(i): semantics = SAT(φ_i)
+    PAIR(i,j): semantics = SAT(φ_i) ∧ SAT(φ_j)
+    ASSOC(i,j,k): enforce associativity on triples
+  REQUIRE consistency across gadget queries
+
+TARGET CLAIM:
+  PASS(A1..A5) with error δ ⇒ f ≈ LocalNOT
+
+⟦END LIGHTBEAM⟧

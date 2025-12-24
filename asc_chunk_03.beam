@@ -1,0 +1,46 @@
+⟦LIGHTBEAM::ASC::CHUNK_3⟧
+# Goal: Turn the amplification idea into a fully formal lemma with explicit constants.
+# Deliverable: a publishable “Amplification + Conditioning Lemma” that plugs the hinge.
+
+PARAMS:
+  B blocks, clique size t, audit error δ
+  choose repetition R = Θ(B log(B/δ))
+  choose per-block trials r = Θ(log(B/δ))
+
+LEMMA AMP-CONDITION (core hinge):
+  Suppose f passes the following meta-test with probability ≥ 1−δ:
+
+    META:
+      query f on base instance -> witness C
+      verify WV
+      focus to H⟨C⟩
+      for each i∉C:
+        repeat r times:
+          resample φ_i -> φ_i'
+          query f and check output unchanged
+      accept iff no flips
+
+  Then for at least (1−O(δ)) fraction of focused accepted transcripts:
+    for all i∉C:
+      Pr_{φ_i'~D_i}[ f flips under resample of i | transcript ] ≤ 1/poly(B)
+
+PROOF SKETCH BEAMS:
+  BEAM FIX_TRANSCRIPT:
+    condition on (H, S, C, all φ_j for j≠i)
+    only randomness is φ_i and φ_i' draws
+
+  BEAM CHERNOFF:
+    if flip-prob ≥ ε, then r repetitions catch flip with prob ≥ 1−(1−ε)^r
+
+  BEAM UNION:
+    union bound across i∉C
+    choose r so total miss probability ≤ δ/B
+
+  BEAM DECONDITION:
+    show conditioning on ACCEPT∧WV∧FOCUS cannot increase flip probability beyond audit failure
+    (because META directly samples conditional slice)
+
+OUTPUT:
+  Uniform off-clique stability ⇒ influence bound ⇒ junta ⇒ AND ⇒ LocalNOT.
+
+⟦END LIGHTBEAM⟧

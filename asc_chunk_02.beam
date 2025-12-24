@@ -1,0 +1,56 @@
+⟦LIGHTBEAM::ASC::CHUNK_2⟧
+# Goal: Close the quantifier loophole using amplification.
+# Convert “passes BRC” into uniform resampling stability.
+
+OBJECT C*
+  TYPE clique
+  STATUS unique_witness
+
+BEAM UNIQ:
+  WHEN exists! C* with hash_S(C*)=0
+  THEN witness_commitment
+
+BEAM FOCUS:
+  INPUT H,C*
+  OUTPUT H⟨C*⟩
+  PROPERTY semantic_weight(i)=0 for all i∉C*
+
+BEAM RESAMPLE(i):
+  ACTION φ_i → φ_i'
+  OBSERVE Δ_f = [f flips]
+
+THREAT CHEAT_RARE:
+  f accepts only on tiny slice
+  hides instability
+
+THREAT CHEAT_STEER:
+  f steers witness choice
+  avoids tested i
+
+BEAM AMPLIFY_BRC(k):
+  repeat:
+    pick i∉C* (fresh each time or cycle blocks)
+    RESAMPLE(i)
+  reject if any Δ_f
+  choose k so that hiding instability becomes ≤δ
+
+INVARIANT LOCK_IN:
+  (ACCEPT ∧ WV ∧ FOCUS) ⇒ stability obligations active
+
+CONSEQUENCE:
+  PASS(AMPLIFY_BRC) ⇒ ∀ i∉C* : Pr[Δ_f | ACCEPT∧FOCUS] ≤ δ'
+
+BEAM INFLUENCE_BOUND:
+  Σ_{i∉C*} Inf_i(f) ≤ (B−t)δ'
+
+BEAM JUNTA_FORCE:
+  f ≈ g(Φ_{C*})
+
+BEAM SEED_LOCK:
+  SRC ⇒ no seed-keyed global NOT
+
+EMIT STRUCTURE:
+  g = AND(y_i(φ_i) for i∈C*)
+  NEGATIONS local_only
+
+⟦END LIGHTBEAM⟧
