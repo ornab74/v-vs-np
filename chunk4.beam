@@ -1,0 +1,32 @@
+⟦LIGHTBEAM::CHUNK_04⟧
+TITLE Necessity of Seed Invariance
+
+OBJECT f : circuit_family
+OBJECT C* : unique witness clique
+OBJECT S : seed
+OBJECT J : irrelevant seed bits (do not affect h_S(C*))
+
+BEAM UNIQ:
+  exists! C* with h_S(C*)=0
+
+BEAM SEED_EQ:
+  S ~ S_prime if h_S(C*) = h_Sprime(C*)
+  work in class where value = 0
+
+BEAM RESAMPLE_SEED:
+  resample J to obtain S_prime
+  keep h_Sprime(C*)=0
+
+PROPERTY LANGUAGE:
+  L(H<C*>,Phi,S) = L(H<C*>,Phi,S_prime)  (on focused accepted slice)
+
+ASSUME_FAIL:
+  Pr[ f(H<C*>,Phi,S) != f(H<C*>,Phi,S_prime) ] >= epsilon
+
+CERTIFY:
+  output pair of instances with same language value, differing circuit output
+
+CONCLUDE:
+  correctness => seed invariance (SRC)
+
+⟦END LIGHTBEAM⟧

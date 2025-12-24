@@ -1,1 +1,56 @@
-Chunk 4: Full formal proof of the Amplification–Conditioning Lemma, completing audit soundness under the strengthened model.
+CHUNK 4 — Necessity of Seed Invariance
+Date: 2025-12-24
+
+Statement:
+Any circuit that correctly computes L_mix^hash must be invariant under resampling
+seed bits that do not affect the hash constraint h_S(C*), on accepting focused
+instances with verified unique witness clique C*.
+
+Motivation:
+A cheating circuit might hide global nonlocal behavior inside the seed S. If the
+language value is constant across a large equivalence class of seeds (those that
+preserve h_S(C*)=0), then dependence on irrelevant seed bits creates pairs of
+instances with identical language value but differing circuit outputs.
+
+Setup:
+- Condition on UNIQ: there is a unique valid witness clique C* such that h_S(C*)=0.
+- By Chunk 1, the circuit emits C* on acceptance.
+- By Chunk 2, focus to H<C*> without changing the correct answer.
+- Consider seeds S and S_prime such that:
+    1) h_S(C*) = 0 and h_Sprime(C*) = 0
+    2) S and S_prime differ only on bits provably not consulted by the hash evaluation
+       (or more generally, on bits that do not change the hash output on C*).
+
+Semantic Fact:
+For fixed (H<C*>, Phi), the language value is identical for all such seeds:
+  L(H<C*>, Phi, S) = L(H<C*>, Phi, S_prime) = 1
+whenever C* is valid and the hash condition holds.
+
+Proof Outline:
+1) Define an equivalence relation on seeds:
+      S ~ S_prime  iff  h_S(C*) = h_Sprime(C*).
+   In particular, we work inside the class where this equals 0.
+2) Sample S uniformly from the seed distribution; condition on UNIQ and h_S(C*)=0.
+3) Resample only the "irrelevant" seed component J to obtain S_prime while maintaining
+   h_Sprime(C*)=0.
+   Implementation note: split S=(S_hash, S_aux) where S_hash defines the hash family
+   and S_aux is extra randomness; then J=S_aux.
+4) If the circuit output differs between S and S_prime with probability >= epsilon, then we
+   can produce an explicit counterexample pair:
+      I  = (H<C*>, Phi, S)
+      I' = (H<C*>, Phi, S_prime)
+   with L(I)=L(I') but f(I) != f(I'). This contradicts correctness on Omega(epsilon) measure.
+5) Therefore correctness implies seed invariance on all irrelevant bits, except
+   negligible probability.
+
+Amplification:
+Repeat the seed resampling test r = Theta(log(1/delta)) times to make any non-negligible
+seed dependence detectable with high probability (same Chernoff logic as Chunk 3).
+
+Conclusion:
+Correctness forces seed-resampling invariance (SRC). This prevents "seed-keyed"
+global negations, completing the necessity chain needed to justify the strengthened
+audit model from correctness.
+
+Chain so far:
+correctness => WV (Chunk 1) => FOCUS (Chunk 2) => BRC (Chunk 3) => SRC (Chunk 4)
