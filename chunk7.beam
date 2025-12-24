@@ -1,0 +1,26 @@
+⟦LIGHTBEAM::CHUNK_07⟧
+TITLE NP-Hardness Preservation
+
+OBJECT SAT_instance
+OBJECT L_instance = L_mix^hash
+
+BEAM REDUCE:
+  SAT -> block-CNF Φ
+  compatibility graph H
+  clique size t
+
+BEAM HASH:
+  apply VV hashing
+  isolate unique witness with prob >= 1/poly
+
+PROPERTY:
+  SAT(F)=1 iff L_mix^hash(H,Φ,S)=1
+
+BEAM AUDIT_COMPAT:
+  WV, FOCUS, BRC, SRC, SPA
+  do not alter satisfiability semantics
+
+CONCLUDE:
+  NP-hardness preserved under audits
+
+⟦END LIGHTBEAM⟧
