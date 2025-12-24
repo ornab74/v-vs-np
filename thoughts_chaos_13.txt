@@ -1,0 +1,224 @@
+# thoughts_chaos_13.txt
+# Continuation — CHAOS, one chunk per chunk
+# Focus: Attempt K_locality_mix (existential SR + witness + renaming invariance => LocalNOT implementability)
+# Use a communication / symmetry / canonicalization argument outline.
+# Date: 2025-12-23 (America/Toronto)
+
+==============================
+Chunk 102 — CHAOS: Restate K_locality_mix as a concrete theorem target
+==============================
+We have NP language L_mix:
+  Input: (H on [B], formulas φ_1..φ_B on disjoint var sets)
+  Output 1 iff ∃ t-clique C in H with ∀i∈C SAT(φ_i)=1.
+
+We consider a Boolean function f that claims to decide L_mix.
+
+Audit A_exist enforces:
+  (E1) Existential self-reduction (SR):
+       For random input I and random variable z among input bits (edge of H or bit in gadgets),
+          f(I) = f(I[z=0]) ∨ f(I[z=1])   with failure prob ≤ δ1.
+  (E2) Witness check:
+       If f(I)=1, must output witness W (clique indices + assignments) verifiable in poly time,
+       with failure prob ≤ δ2.
+  (E3) Random renaming invariance:
+       For random permutation π of block indices [B] (and induced renaming of formula blocks),
+          f(π(I)) = f(I)   with failure prob ≤ δ3.
+
+Claim target:
+  If f passes A_exist with tiny total error δ, then there exists an equivalent circuit f_loc of size poly(size(f))
+  where every NOT gate's input depends only on a small set of blocks (LocalNOT in block index metric).
+
+We try to prove “existence of local implementation” rather than “original circuit is local.”
+
+==============================
+Chunk 103 — CHAOS: Symmetry pressure lemma (renaming invariance => canonical dependence)
+==============================
+Renaming invariance means f cannot encode “absolute index tricks” without being caught.
+
+Informal lemma:
+  If f is invariant under random permutations with error δ3, then for most inputs I,
+  f(I) depends on the multiset of isomorphism types of local neighborhoods, not on labels.
+
+In our setting, blocks have disjoint internal variables; permutation acts on:
+  - vertex labels of H,
+  - assignment of which φ_i sits at which vertex.
+
+So the only meaningful “label-free” structure is:
+  - unlabeled graph structure of H,
+  - multiset of satisfiability statuses y_i=SAT(φ_i) attached to vertices, but only up to permutation.
+
+Thus invariant f must essentially compute some symmetric function of (H, multiset of y).
+
+Since L_mix is itself invariant and depends on y only through which vertices are “good,”
+f should be close to a function that first computes y_i locally and then runs a graph predicate.
+
+This suggests locality: compute y_i from φ_i using only block i vars.
+
+We aim to formalize:
+  Renaming invariance + witness check implies that if f(I)=1 it must identify specific indices C;
+  but invariance implies these indices are chosen only by relational structure (clique), not by labels.
+
+Thus, f's “decision surface” is compatible with a two-layer architecture:
+  local block deciders + global monotone graph combiner.
+
+==============================
+Chunk 104 — CHAOS: Karchmer–Wigderson (KW) style viewpoint for locality of negations
+==============================
+KW game for monotone functions relates monotone circuit depth to communication complexity.
+We are not proving depth lower bounds; we want to restrict negations (LocalNOT).
+
+Idea: any NOT gate that depends on many blocks computes some global predicate that is sensitive to permutations.
+If such a gate exists, we can use it to build a protocol distinguishing permuted instances beyond what invariance allows,
+contradicting E3.
+
+Concrete plan:
+  Suppose there is a representation of f with a NOT gate whose input g depends on a set S of blocks with |S| large.
+  Then there exist two inputs I_yes, I_no differing only within those blocks such that g flips value.
+  By randomly permuting blocks, we can “scatter” these differences across positions.
+  If g depends on many blocks, scattering doesn't destroy the effect; if g were local, scattering would.
+
+Thus a permutation test could detect g unless g is local.
+
+We turn this into a hybrid argument:
+  - define influence of a block on g under random permutation distribution,
+  - show that a widely-supported g has many influential blocks,
+  - show that under random renaming, the distribution of g-values is not stable, violating E3.
+
+Need a formal inequality:
+  If g depends on ≥s blocks, then
+     Pr_π[ g(π(I)) ≠ g(I) ] ≥ Ω(1)   for some crafted I
+unless g is symmetric in those blocks.
+But g being symmetric while being a NOT-input is constrained by SR + witness semantics.
+
+==============================
+Chunk 105 — CHAOS: Use existential SR to rule out “symmetric global NOT filters”
+==============================
+Existential SR says f behaves like an OR of its restrictions on each variable.
+This property makes f “monotone-like” with respect to branching variables: flipping a variable from 0 to 1
+cannot create a 0 unless compensated by alternative branch. It's not true monotonicity, but it enforces
+a certain upward closure in the decision tree sense.
+
+If there were a global symmetric NOT filter that, say, rejects when “too many blocks are satisfiable,”
+this would violate SR: branching on a bit inside a satisfiable block would cause inconsistent OR structure.
+
+More concretely:
+  In L_mix, adding more satisfiable blocks cannot turn a YES into a NO (monotone in y).
+So any correct f must be monotone in y.
+Thus any NOT that depends symmetrically on many y bits would break monotonicity unless localized
+as negations over internal gadget bits used to compute y_i.
+
+This is the crux:
+  Correctness + witness check implies f is monotone in H-edges and in each block’s satisfiability (y_i).
+Therefore any use of NOT across blocks must be “inessential” and can be pushed into local computations of y_i.
+
+So LocalNOT implementability could be obtained by:
+  - showing f is monotone in the high-level variables (H edges and y bits),
+  - then applying a “monotone normal form” theorem: any circuit for a monotone function can be transformed
+    into one where negations are confined to computing the y bits locally, yielding LocalNOT.
+
+But general monotone functions can still be computed with negations; the theorem needed is nontrivial.
+
+Still, we can use a weaker claim:
+  There exists an equivalent circuit that is monotone in H edges and y bits (monotone circuit with y as inputs).
+Then implement y_i by separate subcircuits on φ_i (local), and compose.
+Negations now occur only inside y_i computation: LocalNOT achieved.
+
+So K_locality_mix reduces to:
+  (K1) f can be rewritten as F(H,y) with y_i=SAT(φ_i) computed locally.
+  (K2) F is monotone in (H,y), so can be implemented without cross-block NOTs.
+
+==============================
+Chunk 106 — CHAOS: Build the rewriting f -> F(H,y) using renaming invariance + witness extraction
+==============================
+Construct y_i procedure:
+  Define a derived predicate y_i' by querying f on modified inputs where H is chosen so that
+  the only possible t-clique must include vertex i, and all other vertices are “neutral.”
+Then f's output reveals whether φ_i is satisfiable.
+
+Example construction:
+  Let H_i be a graph consisting of:
+    - a fixed (t-1)-clique on a set S0 of vertices not including i,
+    - edges connecting i to all vertices in S0,
+    - no other edges.
+Then H_i has a t-clique iff vertex i is good (SAT(φ_i)=1).
+Also it is invariant enough under permutations that keep i distinguished; but we can randomize the choice of S0.
+
+Then:
+  L_mix(H_i,Φ)=SAT(φ_i).
+Thus any correct f must satisfy:
+  f(H_i,Φ)=SAT(φ_i).
+
+Therefore we can define y_i := f(H_i,Φ), which depends only on φ_i if f is renaming-invariant and correct.
+
+But this is circular: it uses f itself to compute y_i.
+For existence proof, it's fine: it shows that SAT(φ_i) is reducible to f by a simple projection.
+But we need the opposite direction: compute f from y_i.
+
+Now claim:
+  For any input (H,Φ), f(H,Φ)=F(H, y) where y_i=SAT(φ_i).
+Because L_mix depends on Φ only through y bits, and any correct f must match L_mix.
+So correctness alone implies there exists such an F (namely L_mix’s definition).
+The issue is implementing F efficiently without cross-block negations.
+
+But F is precisely the monotone function “clique among good vertices,” which is monotone in (H,y).
+So F has a monotone circuit of size perhaps large (unknown), but we only need to show that if f is small,
+then an implementation of F composed with local y circuits is small and LocalNOT.
+
+This needs a size-preservation lemma:
+  If there exists a circuit f of size s deciding L_mix, then there exists a circuit of size poly(s)
+  in the composed form: compute y_i by circuits for SAT(φ_i), then compute F(H,y) by a circuit of size poly(s).
+Not obvious.
+
+However, we can use the substitution construction:
+  f deciding L_mix corresponds to a circuit deciding ω(H[G_i])≥t·k on the substitution graph.
+This circuit directly sees gadget edges; it need not compute y_i explicitly.
+So obtaining composed-form circuits may require nontrivial “decomposition” of computation.
+
+Thus K_locality_mix remains open, but we have a plausible route:
+  enforce, via audit, that f behaves correctly on special H structures (like H_i and disjoint unions thereof),
+  which can force a compositional computation.
+
+==============================
+Chunk 107 — CHAOS: Strengthen the audit to force compositionality (the “star test”)
+==============================
+Add audit test T_star:
+  - pick random vertex i,
+  - replace H by H_i (the star-plus-(t-1)-clique gadget),
+  - check that f(H_i,Φ) equals f(H_i, Φ') when all φ_j for j≠i are replaced by trivial satisfiable formulas.
+This forces f(H_i,Φ) to depend only on φ_i.
+
+Similarly add test T_pair:
+  - choose two vertices i,j,
+  - use an H_{i,j} that has a t-clique iff both i and j are good (AND composition),
+  - check multiplicativity.
+
+By enforcing these for random i, we can force f to expose y_i as local features.
+
+Then we can recover LocalNOT: negations needed to compute y_i can be confined to block i.
+
+So: K_locality_mix can be made true for the audited class with these extra tests.
+
+This turns the endgame into: show any correct small circuit can be augmented to pass T_star/T_pair,
+or alternatively restrict attention to circuits that do pass (audited class separation).
+
+==============================
+Chunk 108 — CHAOS: Where this leaves the “full proof concept”
+==============================
+We have a concrete “proof concept” chain with an explicit final lever:
+  - define A_exist + T_star/T_pair audit family,
+  - prove audit soundness ⇒ LocalNOT implementability for L_mix,
+  - apply LocalNOT kill ⇒ monotone extraction ⇒ monotone LB contradiction.
+
+The remaining hard part is audit completeness: do correct circuits naturally satisfy T_star/T_pair?
+They should, because L_mix semantics make them true identities.
+So a correct f passes them exactly. Great: completeness is immediate (no overhead) if f is correct.
+
+Thus, for correct f, K_locality_mix reduces to proving soundness:
+  passing these tests forces locality.
+
+This is now a clean property-testing theorem on the input space of L_mix.
+
+We have not completed the soundness proof, but we have reduced it to a finite family of identities
+that should characterize L_mix up to small error.
+
+End of file.

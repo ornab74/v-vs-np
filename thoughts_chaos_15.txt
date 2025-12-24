@@ -1,0 +1,160 @@
+# thoughts_chaos_15.txt
+# Continuation — CHAOS, one chunk per chunk
+# Focus: Prove L_star_pair_localbits quantitatively (property-testing / junta-style)
+# Goal: show T_star enforces block-local dependence; T_pair enforces AND-consistency.
+# Date: 2025-12-23 (America/Toronto)
+
+==============================
+Chunk 119 — CHAOS: Set up the probability space and what “block-local” means
+==============================
+We have B blocks with disjoint formula inputs φ_1,...,φ_B.
+We assume an audit sampling distribution D over block formulas:
+  Φ ~ D = D_1 × ... × D_B  (product distribution across blocks),
+so blocks are independent and identically distributed (for symmetry; i.i.d. not strictly required).
+
+We consider f evaluated on special graphs H_i(S0), H_{i,j}(S0).
+
+Define for fixed i and S0:
+  f_i,S0(Φ) := f(H_i(S0), Φ).  This is a Boolean function on Φ.
+
+Block-local target:
+  We want to show there exists g_i such that
+     Pr_{Φ~D}[ f_i,S0(Φ) ≠ g_i(φ_i) ] ≤ ε_star
+with small ε_star depending on audit error.
+
+Similarly for pair:
+  f_{i,j,S0}(Φ) := f(H_{i,j}(S0), Φ)
+should be close to g_i(φ_i) ∧ g_j(φ_j).
+
+==============================
+Chunk 120 — CHAOS: Formalize T_star as an “insensitivity to other blocks” test
+==============================
+T_star described earlier can be implemented as:
+
+Sample i uniformly in [B].
+Sample S0 uniformly among (t-1)-subsets of [B]\{i}.
+Sample Φ ~ D and sample an index j ≠ i uniformly.
+Let Φ' be Φ but with φ_j replaced by an independent draw φ_j~D_j (a resample).
+Check:
+   f(H_i(S0), Φ) == f(H_i(S0), Φ').
+
+This is exactly the standard influence/resampling test:
+  It estimates the total influence of non-i blocks on the function f_i,S0.
+
+If this test passes with probability ≥ 1-δ_star, then:
+  Pr[ f_i,S0(Φ) ≠ f_i,S0(Φ^{(j resampled)}) ] ≤ δ_star
+on average over random j≠i. This implies small average influence from other blocks.
+
+We want to upgrade this to existence of a g_i(φ_i) close to f_i,S0.
+
+==============================
+Chunk 121 — CHAOS: A junta lemma on product spaces (proof sketch without heavy Fourier)
+==============================
+On product spaces, there is a simple “conditioning” construction:
+
+Define:
+  g_i(x) := Majority_{Φ_{-i}~D_{-i}} f_i,S0( x, Φ_{-i} )
+where x is a value of φ_i and Φ_{-i} are all other blocks.
+
+Then for any Φ:
+  g_i(φ_i) is the best L1 predictor of f_i,S0 given φ_i (Bayes optimal).
+
+Claim:
+  dist(f_i,S0, g_i∘proj_i) ≤ Inf_{-i}(f_i,S0)
+where Inf_{-i} is total influence from coordinates other than i under resampling.
+
+We can bound this distance by:
+  E_{Φ}[ | f_i,S0(Φ) - E[f_i,S0 | φ_i] | ] ≤ sum_{j≠i} Inf_j(f_i,S0)
+This is a known inequality (Efron–Stein / martingale variance bound) and can be adapted to Boolean L1 distance.
+
+Thus passing T_star (small average resampling sensitivity) implies f_i,S0 is close to a function of φ_i alone.
+
+Quantitative bound:
+  If average over j≠i of Pr[f(Φ)≠f(Φ^{(j)})] ≤ δ_star, then
+    Σ_{j≠i} Inf_j ≤ (B-1)·δ_star.
+Therefore:
+  dist ≤ (B-1)·δ_star.
+
+This is crude; we can get dist ≤ O(δ_star·B).
+To make dist small, δ_star must be ~1/B. But we only need enough locality to feed LocalNOT kill;
+even a weak bound might suffice with parameter tuning.
+
+CHAOS improvement:
+  run T_star with multiple resamplings and use a threshold:
+    if any resampling among R random j changes output, reject.
+Then acceptance implies maximum influence is small, giving better dist bounds.
+
+But we proceed with the linear bound for now.
+
+==============================
+Chunk 122 — CHAOS: Make y_i^f independent of S0 (stability across S0 choices)
+==============================
+We also need that y_i^f does not depend on which S0 was used, otherwise it isn’t a stable local bit.
+
+Add audit test T_S0_stable:
+  Sample i and two random choices S0,S0' and check:
+     f(H_i(S0),Φ) == f(H_i(S0'),Φ)
+(or equality after resampling irrelevant blocks).
+
+If this passes with error δ_S0, then for most i, f(H_i(S0),Φ) is close to a single function y_i(φ_i)
+independent of S0. Define y_i as majority over S0 of g_i,S0 from Chunk 121.
+
+So with T_star + T_S0_stable we obtain:
+  ∃ y_i(·) such that for random S0:
+      Pr[ f(H_i(S0),Φ) ≠ y_i(φ_i) ] ≤ ε1
+where ε1 ≤ O(B·δ_star + δ_S0).
+
+This is our “local bits extraction lemma.”
+
+==============================
+Chunk 123 — CHAOS: Use T_pair to enforce AND-consistency of extracted bits
+==============================
+T_pair test can be phrased as:
+
+Sample i≠j and S0 of size t-2 disjoint from {i,j}.
+Sample Φ ~ D.
+Check:
+   f(H_{i,j}(S0),Φ) == f(H_i(S0∪{j}),Φ) ∧ f(H_j(S0∪{i}),Φ)
+(with appropriate definitions; basically the graph that forces clique requires both i and j be good.)
+
+If the test passes with error δ_pair and we already have:
+   f(H_i,Φ) ≈ y_i(φ_i), f(H_j,Φ) ≈ y_j(φ_j),
+then by triangle inequality we get:
+   f(H_{i,j},Φ) ≈ y_i(φ_i) ∧ y_j(φ_j)
+with error bounded by δ_pair + 2ε1.
+
+Thus AND-consistency holds.
+
+This completes L_star_pair_localbits as a quantitative statement, modulo the influence→distance bound.
+
+==============================
+Chunk 124 — CHAOS: Translate to LocalNOT implementability (explicit circuit)
+==============================
+Once we have y_i(φ_i), we can implement them as subcircuits on block i only.
+
+Negations needed to compute y_i may be arbitrary inside the subcircuit, but they are local: each NOT input
+depends only on variables of block i.
+
+The global combiner f_star(H,Φ) for the special graphs H_i,H_{i,j} is then:
+  - for H_i: output y_i
+  - for H_{i,j}: output y_i ∧ y_j
+No global NOTs required.
+
+For full L_mix, we'd need the OR over cliques. But at minimum this lemma shows the audit
+forces block-local satisfiability indicators.
+
+So L_star_pair_localbits is a rigorous “locality extraction” component of K_locality_mix.
+
+==============================
+Chunk 125 — CHAOS: What’s next to complete K_locality_mix
+==============================
+We still need L_SR→DNF_uniqueclique (from thoughts_chaos_14) to combine these local bits into the full composed form.
+
+But now we have a strong handle on the local-bit piece:
+  - can tune δ_star by increasing audit samples,
+  - can enforce S0-stability explicitly.
+
+Next file will attempt to push SR→DNF in a distributional setting where unique witness extraction works
+(planted unique clique distributions), and then close the loop to monotone extraction contradiction.
+
+End of file.

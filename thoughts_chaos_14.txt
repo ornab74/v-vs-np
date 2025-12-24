@@ -1,0 +1,231 @@
+# thoughts_chaos_14.txt
+# Continuation — CHAOS, one chunk per chunk
+# Focus: Attempt SOUNDNESS proof for K_locality_mix with audits:
+#   A_exist (existential SR + witness check + renaming) + T_star + T_pair.
+# Target: passing these tests with small error => closeness to a local composed form
+#         f(H,Φ) ≈ OR_{t-cliques C in H} AND_{i∈C} y_i(Φ),
+# where each y_i depends only on block φ_i (hence LocalNOT implementability).
+# Date: 2025-12-23 (America/Toronto)
+
+==============================
+Chunk 109 — CHAOS: Formalize the “star” and “pair” graph gadgets precisely
+==============================
+Fix parameters B (block count) and t (clique size).
+
+Define S0 as a fixed set of t-1 indices in [B], and i an index not in S0.
+
+Star-clique gadget H_i(S0):
+  - vertices: [B]
+  - edges: complete graph on S0 (so S0 is a (t-1)-clique),
+           connect i to every vertex in S0,
+           no other edges required (others can be isolated).
+Then H_i has a t-clique iff vertex i is included and S0 is used, i.e., iff i is "good".
+
+Pair gadget H_{i,j}(S0):
+  - take S0 of size t-2 disjoint from {i,j}
+  - edges: complete graph on S0,
+           connect i to all in S0, connect j to all in S0,
+           connect i-j edge,
+           no other edges required.
+Then H_{i,j} has a t-clique iff both i and j are included with S0, i.e., iff i and j are "good".
+
+These gadgets depend on choosing S0; the audit will randomize S0 uniformly over subsets of the right size.
+
+==============================
+Chunk 110 — CHAOS: Define the local “goodness bit” y_i extracted from f
+==============================
+Given any input (H, Φ=(φ_1,...,φ_B)), define:
+  y_i^f(Φ) := Majority_{S0}[ f(H_i(S0), Φ) ] 
+where S0 is sampled uniformly among (t-1)-subsets of [B]\{i}.
+(We use majority to smooth the randomness; audit can estimate it by sampling a few S0's.)
+
+T_star test enforces:
+  For random i and random S0, f(H_i(S0), Φ) is insensitive to blocks j≠i:
+     f(H_i(S0), Φ) ≈ f(H_i(S0), Φ with φ_j replaced by trivial satisfiable)
+Equivalently: for most i, the value depends only on φ_i.
+
+So under T_star soundness, y_i^f becomes a well-defined block-local predicate:
+  y_i^f(Φ) ≈ g(φ_i) for some per-block function g.
+
+This is our “locality extraction”: produce a local bit for each block.
+
+==============================
+Chunk 111 — CHAOS: Use T_pair to force AND-consistency of y bits
+==============================
+Under true L_mix semantics:
+  L_mix(H_{i,j}(S0), Φ) = SAT(φ_i) ∧ SAT(φ_j).
+
+T_pair enforces:
+  for random i≠j and S0,
+     f(H_{i,j}(S0), Φ) ≈ f(H_i(S0'), Φ) ∧ f(H_j(S0''), Φ)
+for appropriate randomized S0',S0'' (or simply:
+     f(H_{i,j},Φ) ≈ y_i^f(Φ) ∧ y_j^f(Φ) )
+
+Therefore T_pair implies pairwise consistency:
+  f(H_{i,j},Φ) ≈ y_i^f(Φ) ∧ y_j^f(Φ).
+
+Combined with witness-check completeness (E2), this also enforces that when f outputs 1 on H_{i,j},
+it must supply satisfying assignments for both blocks i and j, which further pressures y_i^f to agree
+with actual SAT(φ_i) on the tested distribution (at least on YES outputs).
+
+So far: we have extracted local bits y_i^f that behave like AND-composable satisfiable indicators.
+
+==============================
+Chunk 112 — CHAOS: Define the canonical composed hypothesis F̂(H,Φ) from y_i^f
+==============================
+Define:
+  F̂(H,Φ) := OR_{C ⊆ [B], |C|=t, C is a clique in H}  AND_{i∈C} y_i^f(Φ).
+
+This is exactly L_mix but with SAT(φ_i) replaced by y_i^f.
+
+Note:
+  - F̂ is monotone in H-edges and in the y bits.
+  - y_i^f are block-local, so computing them uses only φ_i.
+
+If we can show:
+  f(H,Φ) ≈ F̂(H,Φ) on the audit distribution,
+then we have achieved K_locality_mix soundness: f is close to a local composed form,
+hence admits a LocalNOT implementation (negations only inside the local y computations).
+
+Now we attempt to prove f ≈ F̂ using existential SR + witness checks.
+
+==============================
+Chunk 113 — CHAOS: Key inductive lemma using existential SR (reduce general H to clique-witness subqueries)
+==============================
+Existential SR (E1) says:
+  f(I) = f(I[z=0]) ∨ f(I[z=1]) for random branch variables z, with small error.
+
+Heuristic: repeated SR lets us “restrict” H down to a sparse subgraph that contains only one candidate
+t-clique witness, without changing the acceptance value too often.
+
+In particular, for any fixed candidate clique C, there is a restriction ρ_C on edges of H that:
+  - keeps edges inside C as 1,
+  - kills edges that would allow alternative cliques (set many edges to 0),
+  - leaving a graph isomorphic to a star-clique composition where the only possible t-clique is exactly C.
+
+Call this restricted graph H→H⟨C⟩.
+
+If SR held for all branchings (not just random), then correctness would imply:
+  f(H,Φ) = OR_{C clique} f(H⟨C⟩,Φ).
+
+We only have SR on random branchings and approximate. So we aim for a weaker averaged statement:
+  Over random restriction processes that iteratively branch on random edges,
+  the probability mass of reaching a “unique-clique normal form” concentrates enough that:
+     f(H,Φ) ≈ OR over cliques C of f(H⟨C⟩,Φ).
+
+This is the first big technical gap; we present it as Lemma SR→DNF:
+  Passing SR tests implies f is close to a DNF over “canonical clique-witness subinstances.”
+
+Assuming Lemma SR→DNF, we finish via T_star/T_pair.
+
+==============================
+Chunk 114 — CHAOS: Finish assuming Lemma SR→DNF (plug T_star/T_pair to identify f(H⟨C⟩,Φ))
+==============================
+For a unique-clique normal form H⟨C⟩, where C is the only t-clique, L_mix semantics are:
+  L_mix(H⟨C⟩,Φ) = ∧_{i∈C} SAT(φ_i).
+
+Our audits approximate this:
+
+- By T_star, for each i in C, f on the star gadget isolates dependence on φ_i and defines y_i^f.
+- By repeated T_pair (and associativity induced by SR), we get for the whole set C:
+    f(H⟨C⟩,Φ) ≈ ∧_{i∈C} y_i^f(Φ).
+
+Thus OR over cliques yields:
+    OR_C f(H⟨C⟩,Φ) ≈ OR_C ∧_{i∈C} y_i^f(Φ) = F̂(H,Φ).
+
+Combine with SR→DNF:
+    f(H,Φ) ≈ F̂(H,Φ).
+
+Therefore f is close to the composed form.
+
+==============================
+Chunk 115 — CHAOS: LocalNOT implementability from the composed form (construction)
+==============================
+Given composed hypothesis F̂(H,Φ):
+
+1) For each i, compute y_i^f(Φ) by running the local procedure g on φ_i
+   (or by hardwiring the local circuit that approximates it under T_star).
+
+2) Compute global monotone function:
+      OR over all t-cliques of AND of y_i
+   This can be implemented by a monotone circuit in variables:
+      - H edges
+      - y bits
+   (Size may be large; we only need existence with size polynomially related to f under our soundness-to-implementation lemma.)
+
+3) Negations appear only inside the per-block computations of y_i, hence any NOT-input depends on one block.
+So we obtain LocalNOT with r=1 in block metric.
+
+Thus K_locality_mix reduces to proving SR→DNF with quantitative size preservation.
+
+==============================
+Chunk 116 — CHAOS: Attempt at SR→DNF lemma (sketch via decision tree unfolding)
+==============================
+Define a randomized decision tree procedure P on H-edges:
+  - While there exists an “undecided” edge, query a random such edge e
+  - Branch on e=0 and e=1
+This builds a restriction tree whose leaves correspond to fully specified graphs.
+
+If f satisfies SR exactly for all queried edges, then:
+  f(H,Φ) equals OR of f(leaf,Φ) over leaves reachable with some assignment of queried edges,
+because existential SR exactly matches OR over branches.
+
+With approximate SR holding only on random edges, we can still argue:
+  along the random decision process, expected discrepancy between f(node) and OR of children is ≤ δ1 per step,
+so after T steps, discrepancy ≤ T·δ1 (martingale telescoping).
+
+If we choose T so that with high probability the restricted graph has at most one t-clique
+(e.g., by setting many edges to 0), then leaves correspond to unique-clique forms.
+
+This yields:
+  f(H,Φ) ≈ OR over unique-clique leaves of f(leaf,Φ)  with error ≤ T·δ1 + Pr[not unique].
+
+So SR→DNF reduces to:
+  Find a random edge-query strategy and a step bound T such that:
+    Pr[restricted graph has ≥2 t-cliques] is small.
+
+But for arbitrary H (adversarial input), this may fail. Therefore we need an input distribution on H,
+or we need the audit to sample H from a distribution (e.g., random graphs) where this uniqueness property can be induced.
+
+Thus K_locality_mix can be proven as a *distributional* soundness theorem:
+  If f passes audits on random H drawn from a suitable distribution (e.g., Erdos-Renyi with tuned density),
+  then SR decision process yields unique cliques with noticeable probability.
+
+This is consistent with our overall “average-case audit” framing.
+
+==============================
+Chunk 117 — CHAOS: Concrete distribution choice to make SR→DNF plausible
+==============================
+Take H ~ G(B,q) with q tuned so that:
+  expected number of t-cliques is moderate, and after setting a random subset of edges to 0 (via SR queries),
+  with good probability exactly one t-clique remains.
+
+We can also *plant* a unique t-clique C* by setting its edges to 1 and sprinkling other edges at lower density.
+Then the decision process that queries random edges will likely kill competing cliques.
+
+On such distributions, SR→DNF can be made to hold with parameters, because:
+  - YES inputs have a (planted) witness,
+  - NO inputs (in gap setting) have none.
+
+Then:
+  passing witness checks + SR ensures f aligns with witness-existence,
+  and T_star/T_pair identify the dependence on block satisfiability.
+
+This yields a coherent distributional K_locality_mix.
+
+==============================
+Chunk 118 — CHAOS: Outcome — what is proved and what remains
+==============================
+We have converted K_locality_mix into two explicit sub-lemmas:
+
+  (L_star/pair) Star + pair tests ⇒ existence of local bits y_i^f and AND-consistency.
+  (L_SR→DNF) Existential SR on random edge queries + suitable H distribution ⇒ f close to OR of leaf subinstances
+             that isolate a single t-clique witness, enabling replacement by AND of y bits.
+
+L_star/pair is plausible and close to standard property-testing arguments (junta/insensitivity).
+L_SR→DNF is the hard part: it requires controlling the random decision process on H to yield unique witness forms.
+
+But this is the sharpest, most “doable” version of the keystone we’ve had:
+  it is now a concrete probabilistic statement with explicit knobs (q, t, T, δ1).
+
+End of file.

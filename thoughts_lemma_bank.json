@@ -1,0 +1,96 @@
+{
+  "meta": {
+    "created_at": "2025-12-23T00:00:00-05:00",
+    "timezone": "America/Toronto",
+    "purpose": "Chaos-mode proof concept scaffold for P vs NP using interacting lemma graph, audits, locality, and monotone extraction."
+  },
+  "references": [
+    {
+      "file": "thoughts_chaos_01.txt",
+      "path": "/mnt/data/thoughts_chaos_01.txt"
+    },
+    {
+      "file": "thoughts_chaos_02.txt",
+      "path": "/mnt/data/thoughts_chaos_02.txt"
+    },
+    {
+      "file": "thoughts_chaos_03.txt",
+      "path": "/mnt/data/thoughts_chaos_03.txt"
+    },
+    {
+      "file": "thoughts_chaos_04.txt",
+      "path": "/mnt/data/thoughts_chaos_04.txt"
+    },
+    {
+      "file": "thoughts_chaos_05.txt",
+      "path": "/mnt/data/thoughts_chaos_05.txt"
+    },
+    {
+      "file": "thoughts_append.txt",
+      "path": "/mnt/data/thoughts_append.txt"
+    },
+    {
+      "file": "thoughts_append2.txt",
+      "path": "/mnt/data/thoughts_append2.txt"
+    }
+  ],
+  "lemmas": [
+    {
+      "id": "M1_NOT_kill",
+      "scope": "Circuits with input-only negations; \u2264t negated variables",
+      "statement": "Under R_p (variable restrictions), circuit becomes monotone on live variables with prob \u2265 (1-p)^t.",
+      "proof": "Each negated variable survives live with prob p; monotone iff none survive => (1-p)^t.",
+      "status": "proved",
+      "from": "thoughts_chaos_03.txt#Chunk31"
+    },
+    {
+      "id": "LocalNOT_vertex_kill",
+      "scope": "LocalNOT(t_NOT,r) under vertex-subset restriction \u03c1_U (|U|=m)",
+      "statement": "Pr[some NOT survives] \u2264 t_NOT * (r^2/2)*(m/n)^2 (using \u22641 surviving vertex in support implies const).",
+      "proof": "Bound event that \u22652 support vertices remain; union bound over pairs; union bound over NOT gates.",
+      "status": "proved (under refined kill criterion)",
+      "from": "thoughts_chaos_05.txt#Chunk47-48"
+    },
+    {
+      "id": "SR_property_test",
+      "scope": "Self-reduction tester for SAT under distribution D_n",
+      "statement": "If f passes SR checks w.p. \u22651-\u03b4 and passes witness-checks for YES outputs, then f is close to SAT under D_n.",
+      "status": "open",
+      "blockers": [
+        "OR-based SR lacks group structure; classical BLR/Fourier methods don't apply directly.",
+        "Need new analytic invariant (e.g., martingale, monotone coupling, or fixed-point stability)."
+      ],
+      "from": "thoughts_chaos_02.txt#Chunk24-25"
+    },
+    {
+      "id": "Disjoint_union_homomorphism",
+      "scope": "Sparse CNFs with disjoint variable sets",
+      "statement": "If f(\u03c6_A \u2227 \u03c6_B) \u2248 f(\u03c6_A) \u2227 f(\u03c6_B) for random disjoint pairs and also passes SR checks, then f is support-local (junta-like).",
+      "status": "open",
+      "blockers": [
+        "Need quantitative junta theorem for non-product domains (formula space).",
+        "Need distribution D_n with enough random disjoint decompositions and closure under SR moves."
+      ],
+      "from": "thoughts_chaos_05.txt#Chunk51-52"
+    },
+    {
+      "id": "Robust_monotone_hardness_vertex",
+      "scope": "GapCLIQUE / CLIQUE monotone LBs under vertex restriction",
+      "statement": "Monotone lower bounds scale with m (vertices) so apply after restricting to induced subgraph on m vertices.",
+      "status": "mostly-ok (depends on exact known LB regime)",
+      "notes": "This is the cleanest robustness route because restriction maps problem instance to smaller same-type instance.",
+      "from": "thoughts_chaos_04.txt#Chunk41"
+    },
+    {
+      "id": "Structure_preserving_reduction",
+      "scope": "SAT -> graph problem preserving disjoint unions and SR-friendly variable operations",
+      "statement": "Reduction R maps CNF formulas to graphs such that: (i) SR on formula corresponds to local edits in graph; (ii) disjoint union corresponds to graph product/union; (iii) satisfiable/unsat maps to clique-gap property.",
+      "status": "open",
+      "blockers": [
+        "Standard reductions (SAT->CLIQUE) do not preserve disjoint union as simple graph union in a way compatible with gap versions.",
+        "Need gadgetization that is compositional under conjunction on disjoint vars."
+      ],
+      "from": "attack_graph#SAT_to_gapCLIQUE"
+    }
+  ]
+}

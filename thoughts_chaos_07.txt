@@ -1,0 +1,172 @@
+# thoughts_chaos_07.txt
+# Continuation — CHAOS, one chunk per chunk
+# Focus: Prove contextual-conjoining homomorphism soundness on block product domain (core of L_locality),
+# then map to a locality form that can feed the LocalNOT rung.
+# Date: 2025-12-23 (America/Toronto)
+
+==============================
+Chunk 59 — CHAOS: Define the contextual-conjoining test (the designed audit)
+==============================
+Domain: block-sparse CNFs on B blocks (B = n/b, block size b=Θ(log n)).
+Each formula decomposes:  φ = ∧_{i=1..B} φ^(i)  where φ^(i) uses only vars from block i.
+
+We view inputs as tuples Φ = (φ^(1),...,φ^(B)).
+Operator ⊗ corresponds to blockwise conjunction:
+  (Φ ⊗ Ψ)^(i) = φ^(i) ∧ ψ^(i)   (so each block conjoins internally).
+
+Special “context” inputs C are partial tuples: only a subset S⊆[B] has non-empty formulas, others empty.
+
+Test T_ctx(f):
+  1) Sample random context C by choosing random subset S of blocks (e.g., each block included with prob θ),
+     and for each i∈S sample a random block-formula C^(i) from D_block.
+  2) Sample a fresh block j ∉ S and a random block-formula α on block j.
+  3) Check:  f(C ⊗ α_j)  ==  f(C) ∧ f(α_j)
+where α_j is the tuple with α at coordinate j and empty elsewhere.
+
+Completeness:
+  For true SAT on this domain, equality holds exactly (block independence),
+  so a correct SAT decider passes with probability 1.
+
+Soundness (what we prove next):
+  If f passes with probability ≥ 1-δ, then f is close to an AND of per-block functions.
+
+==============================
+Chunk 60 — CHAOS: Candidate structure theorem — approximate semigroup homomorphisms
+==============================
+Define per-block restriction maps:
+  f_i(α) := f(α_i)  where α_i is α placed in block i, empties elsewhere.
+
+Define the canonical factorized candidate:
+  F*(Φ) := ∧_{i=1..B} f_i(φ^(i)).
+
+Claim (Homomorphism-to-factorization):
+  If T_ctx(f) accepts with prob ≥ 1-δ, then
+     Pr_{Φ~D}[ f(Φ) ≠ F*(Φ) ] ≤ O(B·δ)
+under the product distribution D where blocks are sampled independently from D_block.
+
+Intuition:
+  The contextual test exactly enforces that adding an independent new block multiplies the value by f_i(newblock).
+  This should telescope across B blocks: build Φ one block at a time.
+
+We now attempt a proof.
+
+==============================
+Chunk 61 — CHAOS: Proof attempt (telescoping / martingale coupling)
+==============================
+Let blocks be ordered 1..B.
+Sample Φ~D by sampling independent block formulas φ^(i) ~ D_block.
+
+Define partial contexts:
+  C_k := tuple with blocks 1..k set to φ^(1..k), and blocks k+1..B empty.
+So C_0 is all-empty, C_B = Φ.
+
+Observe:
+  F*(C_k) = ∧_{i=1..k} f_i(φ^(i))
+and F*(C_0)=1 if we define empty conjunction as True.
+
+Key identity we want for each step:
+  f(C_k) ?= f(C_{k-1}) ∧ f_k(φ^(k)).
+
+But the test T_ctx samples random contexts (random subset S) and a fresh block j not in S.
+To leverage it for the specific chain C_0→C_1→...→C_B, we need that:
+  for most random Φ, for most k, the context C_{k-1} “looks like” a random context distribution.
+
+CHAOS FIX: choose θ so that S is a random prefix with constant probability.
+Alternative: modify the test to sample contexts that are random prefixes.
+We can do that: define a prefix-context test:
+
+Test T_prefix(f):
+  1) Sample Φ~D.
+  2) Sample k uniformly from {0,...,B-1}.
+  3) Let C = C_k (prefix of Φ), and let α = φ^(k+1) in next block.
+  4) Check: f(C_{k+1}) == f(C_k) ∧ f_{k+1}(φ^(k+1)).
+
+This is now exactly aligned with telescoping.
+
+If f passes T_prefix with prob ≥1-δ, then by union bound / averaging:
+  Expected number of bad k along a random Φ is ≤ δ·B.
+So for random Φ, with high probability most steps satisfy the multiplication rule.
+
+Now define:
+  Bad_k(Φ) = indicator[ f(C_{k+1}) ≠ f(C_k) ∧ f_{k+1}(φ^(k+1)) ].
+
+Then:
+  E_{Φ}[ (1/B) Σ_k Bad_k(Φ) ] ≤ δ.
+
+Telescoping error bound:
+  If all steps were good, then inductively f(C_k)=∧_{i≤k} f_i(φ^(i)) for all k, hence f(Φ)=F*(Φ).
+  With errors, f can deviate. But each bad step can only affect the equality from that point onward.
+
+Worst-case bound:
+  Pr[f(Φ)≠F*(Φ)] ≤ Pr[∃k Bad_k(Φ)=1] ≤ E[Σ_k Bad_k(Φ)] ≤ δ·B.   (Markov + union bound)
+
+Thus we obtain:
+  dist_D(f, F*) ≤ δ·B.
+
+This proves the structure theorem for the *prefix-context audit*.
+
+Conclusion:
+  Soundness holds with linear blowup in B. Since B = n / Θ(log n),
+  to get o(1) distance we need δ = o(log n / n). But we only need δ small enough
+  to force strong locality; even δ=1/poly(n) can work depending on downstream use.
+
+==============================
+Chunk 62 — CHAOS: Inject renaming invariance to collapse f_i into a single g
+==============================
+If audit also enforces within-block renaming invariance strongly, and all blocks have identical distribution,
+then the marginal functions f_i should be close to each other.
+
+Define:
+  g(α) := majority over i of f_i(α) after randomly relabeling block variables.
+
+Then f(Φ) ≈ ∧_i g(φ^(i)).
+
+This makes locality symmetric: behavior depends on each block through the same rule g.
+
+==============================
+Chunk 63 — CHAOS: Interpret factorization as “semantic locality” and extract a LocalNOT circuit
+==============================
+Once we know f(Φ) = ∧_i g(φ^(i)), we can build an explicit circuit:
+  - compute each g(φ^(i)) using a subcircuit on variables of block i only,
+  - AND all outputs.
+
+This circuit has:
+  - NO cross-block dependencies inside NOT inputs (supports are within a single block),
+  - hence it is a LocalNOT circuit with r=b (block size) and t_NOT equal to NOT gates used inside g times B.
+
+So: passing the audit implies existence of an equivalent LocalNOT representation.
+
+Note: this is an existence claim, not a structural claim about the original circuit.
+But for lower bounds, existence is enough: if a small circuit existed, then a small LocalNOT circuit exists.
+
+This is crucial: we do NOT need to prove the given circuit is local; we only need to show
+the function computed must admit a local implementation if it passes the audit constraints.
+
+==============================
+Chunk 64 — CHAOS: Bring back the monotone-extraction rung (how this plugs into thoughts_chaos_05)
+==============================
+Now combine with LocalNOT → monotone under vertex restriction (ρ_U):
+  For functions where blocks correspond to vertex subsets (graph restriction),
+  LocalNOT circuits collapse to monotone w.h.p., giving a monotone circuit for restricted hard function.
+
+Thus, to reach contradiction we need a compositional reduction R such that:
+  - CNF blocks map to vertex subsets in the graph,
+  - block conjunction maps to induced-subgraph union/product in a way that:
+        f(∧ blocks) becomes (hard monotone property) on the union of corresponding vertex subsets,
+  - and the restriction used in LocalNOT rung corresponds to dropping blocks.
+
+This is the remaining big open: structure-preserving reduction.
+
+==============================
+Chunk 65 — CHAOS: Update of keystones after this chunk
+==============================
+We have a concrete soundness proof for an audit variant (prefix-context rather than arbitrary subset context):
+  - L_locality becomes: T_prefix + renaming invariance ⇒ factorization ⇒ local implementation exists.
+
+Remaining keystones:
+  (R_compositional) A reduction from SAT-on-blocks to a robust monotone-hard graph property
+                   that respects block dropping as vertex restriction.
+  (GapMonLB_regime) A monotone lower bound in the compatible parameter regime after restriction.
+  (Lift_to_full_SAT) Extend from block-sparse SAT to general SAT (either by padding or by showing reduction from general SAT to block-sparse SAT).
+
+End of file.

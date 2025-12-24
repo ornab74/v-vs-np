@@ -1,0 +1,110 @@
+# thoughts_chaos_21.txt
+# Continuation — CHAOS
+# Focus: Formalize the two hardest sublemmas:
+#   (i) the clique-preserving normal form H⟨C⟩,
+#   (ii) a quantitative junta lemma for block-product distributions.
+# Date: 2025-12-24
+
+==============================
+Chunk 162 — CHAOS: Formal definition of the clique-preserving normal form H⟨C⟩
+==============================
+Input: Graph H=(V=[B],E), target clique C⊆V with |C|=t.
+
+Define the normal form H⟨C⟩ by:
+1) Keep all edges inside C unchanged.
+2) For any edge e=(u,v) with {u,v}⊄C:
+     set e=1 in H⟨C⟩ iff there exists NO subset S⊆V with:
+        - |S|=t,
+        - {u,v}⊆S,
+        - S≠C,
+        - S is a clique in H.
+
+Equivalently, delete every edge that participates in any t-clique other than C.
+
+Computability:
+- For fixed t, enumerate all (t−2)-subsets T⊆V\{u,v} and test if
+  T∪{u,v} forms a clique in H distinct from C.
+- Time: O(B^{t−2}) per edge; polynomial for constant t (acceptable in nonuniform analysis).
+
+Key properties:
+(P1) C is a clique in H⟨C⟩.
+(P2) No t-clique other than C exists in H⟨C⟩.
+(P3) For the language L_mix^hash, acceptance depends only on existence of a valid witness;
+     thus L_mix^hash(H,Φ,S)=L_mix^hash(H⟨C⟩,Φ,S) whenever C is the witness.
+
+==============================
+Chunk 163 — CHAOS: Compatibility of H⟨C⟩ with existential SR
+==============================
+Concern: SR branches on individual input bits; does H⟨C⟩ commute with SR?
+
+Observation:
+- SR is applied syntactically to f, not semantically to the language.
+- The audit only checks identities on distributions where witness-check passes.
+- When witness outputs C, SR branches that would destroy C are irrelevant:
+  witness-check fails on those branches, so acceptance is not required.
+
+Formal stance:
+- We require SR only conditioned on valid witnesses.
+- This is standard in NP verification contexts and avoids the need for full semantic commutation.
+
+==============================
+Chunk 164 — CHAOS: A quantitative junta lemma for block-product distributions
+==============================
+Setup:
+- Let Φ=(φ_1,...,φ_B) with φ_i~D_i independently.
+- Let f: Φ→{0,1}.
+- For i, define resampling operator R_i replacing φ_i by an independent copy.
+
+Assumption (resampling stability):
+  For all i∉S,
+    Pr[ f(Φ) ≠ f(R_i Φ) ] ≤ ε_i.
+
+Then total influence outside S satisfies:
+  Inf_{¬S}(f) ≤ Σ_{i∉S} ε_i.
+
+Quantitative junta theorem (standard form):
+  For any η>0, there exists g depending only on variables in S∪T
+  with |T|≤Inf_{¬S}(f)/η such that:
+    Pr[f(Φ)≠g(Φ)] ≤ η.
+
+Application:
+- In our case, ε_i≤δ from (T_block_resample_closure).
+- Thus Inf_{¬C*}(f) ≤ (B−t)δ.
+- Choosing η=1/poly(B) yields |T| small if δ≤1/poly(B^2).
+
+Hence f is close to a junta on C* (plus a negligible spillover).
+
+==============================
+Chunk 165 — CHAOS: Identifying the junta as an AND via consistency constraints
+==============================
+Let g depend only on blocks in C*∪T, with |T| small.
+
+Use pairwise AND-consistency:
+  For i,j∈C*,   f≈y_i∧y_j on pair gadgets.
+Use associativity tests:
+  Enforce g(x_i,x_j,x_k)≈(x_i∧x_j)∧x_k for triples.
+
+Standard functional equation result:
+  Any Boolean function on t inputs that is associative, commutative,
+  idempotent, and monotone is either AND or OR.
+Renaming + witness semantics eliminate OR.
+
+Conclusion:
+  g(Φ_{C*})≈∧_{i∈C*} y_i(φ_i).
+
+==============================
+Chunk 166 — CHAOS: Parameter tightening
+==============================
+To satisfy junta extraction:
+- Need δ ≤ 1/poly(B^2).
+- Audit repetitions amplify error detection; polynomial overhead acceptable.
+
+To kill NOTs:
+- Choose block count B ≫ |f|^2 so restriction size m≈B/|f| still large.
+
+To apply monotone CLIQUE LB:
+- Choose t≈Θ(m^{1/2}) or in a known hard regime.
+
+All parameters can be set polynomially without circular dependence.
+
+End of file.

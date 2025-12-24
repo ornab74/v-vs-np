@@ -1,0 +1,65 @@
+{
+  "meta": {
+    "created_at": "2025-12-23T00:00:00-05:00",
+    "timezone": "America/Toronto",
+    "purpose": "Chaos-mode proof concept scaffold for P vs NP using interacting lemma graph, audits, locality, and monotone extraction."
+  },
+  "references": [
+    {
+      "file": "thoughts_chaos_01.txt",
+      "path": "/mnt/data/thoughts_chaos_01.txt"
+    },
+    {
+      "file": "thoughts_chaos_02.txt",
+      "path": "/mnt/data/thoughts_chaos_02.txt"
+    },
+    {
+      "file": "thoughts_chaos_03.txt",
+      "path": "/mnt/data/thoughts_chaos_03.txt"
+    },
+    {
+      "file": "thoughts_chaos_04.txt",
+      "path": "/mnt/data/thoughts_chaos_04.txt"
+    },
+    {
+      "file": "thoughts_chaos_05.txt",
+      "path": "/mnt/data/thoughts_chaos_05.txt"
+    },
+    {
+      "file": "thoughts_append.txt",
+      "path": "/mnt/data/thoughts_append.txt"
+    },
+    {
+      "file": "thoughts_append2.txt",
+      "path": "/mnt/data/thoughts_append2.txt"
+    }
+  ],
+  "parameters": {
+    "n": "problem size (e.g., #vars or #vertices)",
+    "m": "restricted vertex count m = n^\u03b3",
+    "\u03b3": "restriction exponent in (0,1)",
+    "t_NOT": "#NOT gates (or negated variables) budget",
+    "r": "locality support size (vertices touched by NOT-input dependency)",
+    "p": "restriction survival probability (variable or edge)",
+    "\u03b5": "hardness exponent / distance parameter",
+    "\u03b4": "audit failure probability parameter"
+  },
+  "key_inequalities": [
+    {
+      "ineq": "Pr[NOT survives] \u2264 t_NOT*(r^2/2)*(m/n)^2",
+      "from": "thoughts_chaos_05.txt#Chunk47-48"
+    },
+    {
+      "ineq": "Need Pr[monotone after restriction] \u2265 1/poly(n) to combine with monotone LB",
+      "from": "thoughts_chaos_04.txt#Chunk38"
+    },
+    {
+      "ineq": "Choose t_NOT=O(log n), m=n^\u03b3 => polylog(n)*n^{-2(1-\u03b3)} \u2192 0",
+      "from": "thoughts_chaos_05.txt#Chunk48"
+    }
+  ],
+  "compatibility_notes": [
+    "To use monotone LB, t (clique size) must be in a regime with known monotone hardness as function of m.",
+    "Vertex restriction is preferred over edge deletion for robustness at t ~ log m."
+  ]
+}

@@ -1,0 +1,84 @@
+{
+  "meta": {
+    "created_at": "2025-12-23T00:00:00-05:00",
+    "timezone": "America/Toronto",
+    "purpose": "Chaos-mode proof concept scaffold for P vs NP using interacting lemma graph, audits, locality, and monotone extraction."
+  },
+  "references": [
+    {
+      "file": "thoughts_chaos_01.txt",
+      "path": "/mnt/data/thoughts_chaos_01.txt"
+    },
+    {
+      "file": "thoughts_chaos_02.txt",
+      "path": "/mnt/data/thoughts_chaos_02.txt"
+    },
+    {
+      "file": "thoughts_chaos_03.txt",
+      "path": "/mnt/data/thoughts_chaos_03.txt"
+    },
+    {
+      "file": "thoughts_chaos_04.txt",
+      "path": "/mnt/data/thoughts_chaos_04.txt"
+    },
+    {
+      "file": "thoughts_chaos_05.txt",
+      "path": "/mnt/data/thoughts_chaos_05.txt"
+    },
+    {
+      "file": "thoughts_append.txt",
+      "path": "/mnt/data/thoughts_append.txt"
+    },
+    {
+      "file": "thoughts_append2.txt",
+      "path": "/mnt/data/thoughts_append2.txt"
+    }
+  ],
+  "stages": [
+    {
+      "stage": 1,
+      "name": "Define audited-circuit model for SAT",
+      "invariant": "Circuit outputs include YES witnesses; audit enforces SR constraints + disjoint-union multiplicativity under random renamings.",
+      "goal": "Establish L_locality: passing audit forces locality of NOT-input supports (or low influence) on sparse instance distribution."
+    },
+    {
+      "stage": 2,
+      "name": "Transfer locality to graph/hard monotone function",
+      "invariant": "Compositional reduction R preserves audit constraints: locality in SAT-space becomes locality in edge-variable space.",
+      "goal": "Show any small SAT circuit passing audit induces a LocalNOT circuit for gap-clique (or monotone separator)."
+    },
+    {
+      "stage": 3,
+      "name": "Restriction kill and monotone extraction",
+      "invariant": "Under vertex restriction \u03c1_U, LocalNOT circuits become monotone w.h.p.",
+      "goal": "Produce a monotone circuit for restricted hard function on m vertices."
+    },
+    {
+      "stage": 4,
+      "name": "Contradict monotone lower bound",
+      "invariant": "Hard function remains in same family after restriction (gap-clique on m vertices).",
+      "goal": "Monotone LB implies restricted circuit must be huge => original circuit huge => no small audited SAT circuits."
+    },
+    {
+      "stage": 5,
+      "name": "Lift from audited SAT circuits to all SAT circuits",
+      "invariant": "Transform any SAT circuit family into audited form with poly overhead (or show any SAT circuit can be made to pass audit if correct).",
+      "goal": "Conclude SAT not in P/poly. This is a final keystone: 'audit completeness'."
+    }
+  ],
+  "keystones": {
+    "L_locality": "soundness of audit -> locality (new property testing / junta theorem on CNF domain)",
+    "R_compositional": "reduction preserving disjoint union and SR-friendly moves",
+    "Audit_completeness": "any correct SAT circuit can be augmented to pass audit with only poly overhead"
+  },
+  "why_this_could_bypass_barriers": [
+    "Audit property is not 'large' in natural-proof sense; it's a structured, certificate-based compliance condition.",
+    "Locality is enforced via symmetry (random renamings) and algebraic composition (disjoint union), not via generic correlation tests.",
+    "Uses monotone lower bounds as a lever but only after forcing monotone-like behavior by audit, not by proving general monotone extraction."
+  ],
+  "risk_points": [
+    "Audit completeness may be false (there may exist correct SAT circuits that cannot be made audit-compliant without heavy overhead).",
+    "Compositional reductions may reintroduce global dependence and destroy locality.",
+    "Need monotone LB in parameter regime compatible with locality-kill probability (poly probability)."
+  ]
+}

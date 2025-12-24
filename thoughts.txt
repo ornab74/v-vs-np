@@ -1,0 +1,21 @@
+THOUGHTS (P vs NP attempt)
+
+A) AC^0 mini-world
+- PARITY ∉ AC^0 (polynomial size, constant depth).
+- Random restrictions + switching lemma: AC^0 simplifies to small DNF/CNF; parity does not.
+- Quantitative: depth-d requires size ≥ exp(Ω(n^{1/(d-1)})).
+
+B) Identification set H_n (SAT vs P/poly)
+- Dream: poly-size H_n so that matching SAT on H_n forces matching SAT on all size-n inputs (for any poly-size circuit).
+- Would make SAT “identifiable” from few samples; then diagonalization yields SAT ∉ P/poly ⇒ P≠NP.
+- This object is PRG/derandomization-like; naive constructions hit known barriers.
+
+C) Proof complexity route
+- Poly-bounded strong proof system for TAUT ↔ NP=coNP.
+- So superpoly lower bounds for strong systems (Frege/Extended Frege) would imply NP≠coNP, supporting P≠NP.
+- Strong explicit lower bounds exist mainly for weaker systems (e.g., resolution).
+
+Cross-test
+- A is a completed prototype.
+- B is the circuit analogue of C: small circuits ↔ short proofs; hard functions ↔ hard tautologies.
+- B tends to connect to PRGs/derandomization; C demands non-natural / non-relativizing lower-bound techniques.

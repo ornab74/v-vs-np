@@ -1,0 +1,60 @@
+{
+  "meta": {
+    "created_at": "2025-12-23T00:00:00-05:00",
+    "timezone": "America/Toronto",
+    "purpose": "Chaos-mode proof concept scaffold for P vs NP using interacting lemma graph, audits, locality, and monotone extraction."
+  },
+  "references": [
+    {
+      "file": "thoughts_chaos_01.txt",
+      "path": "/mnt/data/thoughts_chaos_01.txt"
+    },
+    {
+      "file": "thoughts_chaos_02.txt",
+      "path": "/mnt/data/thoughts_chaos_02.txt"
+    },
+    {
+      "file": "thoughts_chaos_03.txt",
+      "path": "/mnt/data/thoughts_chaos_03.txt"
+    },
+    {
+      "file": "thoughts_chaos_04.txt",
+      "path": "/mnt/data/thoughts_chaos_04.txt"
+    },
+    {
+      "file": "thoughts_chaos_05.txt",
+      "path": "/mnt/data/thoughts_chaos_05.txt"
+    },
+    {
+      "file": "thoughts_append.txt",
+      "path": "/mnt/data/thoughts_append.txt"
+    },
+    {
+      "file": "thoughts_append2.txt",
+      "path": "/mnt/data/thoughts_append2.txt"
+    }
+  ],
+  "interaction_rules": [
+    {
+      "rule": "ChunkIndex",
+      "detail": "All JSON nodes reference 'file#ChunkX' anchors matching the .txt progression."
+    },
+    {
+      "rule": "DependencyPropagation",
+      "detail": "When a lemma status changes, update attack_graph.edges impact and storyboard stage gating."
+    },
+    {
+      "rule": "ProofArtifacts",
+      "detail": "Any attempted proof should land in a .txt chunk; JSON stores only structured summary and blockers."
+    },
+    {
+      "rule": "ParameterLedger",
+      "detail": "All probabilistic bounds are stored in lemma_bank with explicit parameters; avoid silent assumptions."
+    }
+  ],
+  "current_plan": {
+    "next_txt_file": "thoughts_chaos_06.txt",
+    "next_attack": "Attempt L_locality in a concrete sparse-CNF distribution using disjoint-union + renaming invariance.",
+    "auxiliary_attack": "Design a compositional reduction R where conjunction of disjoint var-sets corresponds to graph union/product."
+  }
+}

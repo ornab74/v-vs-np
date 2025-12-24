@@ -1,0 +1,156 @@
+{
+  "meta": {
+    "created_at": "2025-12-23T00:00:00-05:00",
+    "timezone": "America/Toronto",
+    "purpose": "Chaos-mode proof concept scaffold for P vs NP using interacting lemma graph, audits, locality, and monotone extraction."
+  },
+  "references": [
+    {
+      "file": "thoughts_chaos_01.txt",
+      "path": "/mnt/data/thoughts_chaos_01.txt"
+    },
+    {
+      "file": "thoughts_chaos_02.txt",
+      "path": "/mnt/data/thoughts_chaos_02.txt"
+    },
+    {
+      "file": "thoughts_chaos_03.txt",
+      "path": "/mnt/data/thoughts_chaos_03.txt"
+    },
+    {
+      "file": "thoughts_chaos_04.txt",
+      "path": "/mnt/data/thoughts_chaos_04.txt"
+    },
+    {
+      "file": "thoughts_chaos_05.txt",
+      "path": "/mnt/data/thoughts_chaos_05.txt"
+    },
+    {
+      "file": "thoughts_append.txt",
+      "path": "/mnt/data/thoughts_append.txt"
+    },
+    {
+      "file": "thoughts_append2.txt",
+      "path": "/mnt/data/thoughts_append2.txt"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "A_AC0_parity",
+      "type": "completed_result",
+      "from": "thoughts_chaos_01.txt#Chunk15-22",
+      "statement": "Parity not in AC^0 via random restrictions/switching; validates collapse-vs-invariance template."
+    },
+    {
+      "id": "B_audit_SR",
+      "type": "keystone_lemma",
+      "from": "thoughts_chaos_02.txt#Chunk23-26",
+      "statement": "Average-case local-to-global auditing for self-reducible languages using SR checks + certificates (promise variants avoid NO-proof completeness)."
+    },
+    {
+      "id": "C_interpolation",
+      "type": "bridge",
+      "from": "thoughts_chaos_04.txt#Chunk40-43",
+      "statement": "Short proofs -> small (monotone) interpolants; use monotone circuit lower bounds to force long proofs in weak systems."
+    },
+    {
+      "id": "K2_few_NOT",
+      "type": "rung",
+      "from": "thoughts_chaos_03.txt#Chunk31-36",
+      "statement": "Few-negations -> (under restrictions) monotone-like; yields lower bounds if restricted function remains monotone-hard."
+    },
+    {
+      "id": "KR_vertex_restrict",
+      "type": "rung",
+      "from": "thoughts_chaos_04.txt#Chunk41-45",
+      "statement": "Vertex-subset restrictions preserve CLIQUE structure: CLIQUE_{n,t}|\u03c1_U = CLIQUE_{m,t}. Used for robust monotone hardness."
+    },
+    {
+      "id": "LocalNOT_rung",
+      "type": "rung",
+      "from": "thoughts_chaos_05.txt#Chunk46-50",
+      "statement": "Local few-NOT circuits collapse to monotone under vertex restriction with high prob; implies superpoly size given monotone LB at size m."
+    },
+    {
+      "id": "L_locality",
+      "type": "keystone_lemma",
+      "from": "thoughts_chaos_05.txt#Chunk51-52",
+      "statement": "Audit-enforced locality: SR + disjoint-union multiplicativity + random variable renamings force circuit behavior to be support-local (junta-like)."
+    },
+    {
+      "id": "GapCLIQUE_mon_LB",
+      "type": "assumption_or_known",
+      "from": "thoughts_chaos_05.txt#Chunk50",
+      "statement": "Monotone lower bounds for (gap) clique separators in regimes robust to vertex restriction (parameterized by m)."
+    },
+    {
+      "id": "SAT_to_gapCLIQUE",
+      "type": "reduction",
+      "from": "new#ChunkConcept",
+      "statement": "Encode SAT instances into graphs for gap-clique (or label cover) while preserving audit constraints (self-reduction & disjoint-union structure)."
+    },
+    {
+      "id": "Endgame",
+      "type": "target",
+      "from": "equation64/18",
+      "statement": "Prove SAT not in P/poly (or NP not subset P/poly) => P != NP."
+    }
+  ],
+  "edges": [
+    {
+      "from": "L_locality",
+      "to": "LocalNOT_rung",
+      "kind": "enables",
+      "reason": "If audit forces locality of NOT-input supports, vertex restriction kills NOTs with high probability."
+    },
+    {
+      "from": "LocalNOT_rung",
+      "to": "GapCLIQUE_mon_LB",
+      "kind": "consumes",
+      "reason": "Needs robust monotone LB on restricted function (gap clique / clique)."
+    },
+    {
+      "from": "GapCLIQUE_mon_LB",
+      "to": "Endgame",
+      "kind": "via_reduction",
+      "reason": "If SAT reduces to robust monotone-hard function in a way that preserves audit constraints, then small SAT circuits imply small circuits for hard function."
+    },
+    {
+      "from": "SAT_to_gapCLIQUE",
+      "to": "GapCLIQUE_mon_LB",
+      "kind": "maps_instances",
+      "reason": "Transfers hardness from gap clique to SAT or vice versa."
+    },
+    {
+      "from": "B_audit_SR",
+      "to": "L_locality",
+      "kind": "strengthens",
+      "reason": "SR audit is one ingredient; add disjoint-union checks and renamings to force locality."
+    },
+    {
+      "from": "K2_few_NOT",
+      "to": "LocalNOT_rung",
+      "kind": "special_case",
+      "reason": "LocalNOT rung is a concrete subcase of few-negations program with explicit restriction kill probability."
+    },
+    {
+      "from": "C_interpolation",
+      "to": "GapCLIQUE_mon_LB",
+      "kind": "alternative_source",
+      "reason": "Interpolation can generate monotone-hard separators; can swap in if direct gap clique LB is cleaner."
+    }
+  ],
+  "status": {
+    "completed_nodes": [
+      "A_AC0_parity",
+      "KR_vertex_restrict",
+      "LocalNOT_rung (conditional on monotone LB regime)"
+    ],
+    "open_keystones": [
+      "L_locality",
+      "SAT_to_gapCLIQUE (structure-preserving)",
+      "GapCLIQUE_mon_LB regime alignment"
+    ],
+    "big_wall": "General-circuit restriction/collapse or locality enforcement strong enough to apply to SAT circuits."
+  }
+}

@@ -1,0 +1,40 @@
+# CONTINUATION (Dec 23 2025) — "GO FOR IT" IMPLEMENTATION NOTES
+
+Goal: execute all three next-moves:
+(A) formal-ish AC^0 ⟂ PARITY (random restrictions + switching lemma),
+(B) explicit-ish identification/hitting-set H_n in a restricted world (AC^0 / formulas) and why it fails to scale,
+(C) proof-complexity analogue (pigeonhole / Tseitin; resolution width→size).
+
+Core meta-skeleton shared by A/B/C:
+1) Define a "simplification operator" S (random restriction, projection, or proof restriction).
+2) Prove: for every small object O (circuit/proof), S(O) becomes simple w.h.p.
+3) Prove: for target hard object T (PARITY, Tseitin, PHP), S(T) stays complex w.h.p.
+4) Conclude O cannot compute/prove T.
+
+(A) AC^0 vs PARITY:
+Pick restriction ρ~R_p leaving each variable free w.p. p, else fix to 0/1.
+Use Håstad switching lemma: small-width DNF/CNF collapses to shallow decision tree w.h.p.
+Iterate through depth d to show C|ρ becomes decision tree depth << pn (for p≈n^{-1/(d-1)} up to polylogs).
+But PARITY|ρ remains PARITY on ≈pn variables ⇒ decision-tree depth ≈pn.
+So with positive probability C|ρ ≠ PARITY|ρ ⇒ no AC^0 circuit computes parity.
+Quantitative lower bound: size(C) ≥ exp(Ω(n^{1/(d-1)})) for depth d.
+
+(B) Restricted H_n idea:
+If PRG G:{0,1}^ℓ→{0,1}^n fools class C, then H_n:=Im(G) is a test set of size 2^ℓ.
+For AC^0, k-wise independence / small-bias / Braverman-type results yield quasi-poly sized H_n that fools AC^0.
+Turning 'fooling' into 'identification' needs stronger: any wrong circuit differs on some x in H_n AND labels f(x) on H_n are cheaply known.
+For PARITY labels are cheap; for SAT labels are circular. Need promise structure or interactive verification (PCP/IP) to supply labels.
+
+(C) Proof complexity analogue:
+PHP_n and Tseitin formulas yield strong resolution lower bounds.
+Width-size tradeoff: ResSize(F) ≥ 2^{Ω(W(F)-w0)}.
+Random restrictions can preserve an unsatisfiable core while shrinking proof objects, forcing large width/size for weak systems.
+NP≠coNP would follow from superpoly lower bounds for strong systems (Frege/EF), analogous to SAT ∉ P/poly.
+
+Cross-tests:
+A→B: restrictions collapse special circuit classes; no general-circuit switching lemma known.
+B↔C: circuit incompressibility vs proof incompressibility; both hit barriers when generalized.
+A→C: restriction machinery transfers to weak proof systems; fails at full strength.
+
+Keystone missing lemma for full solve:
+A general-circuit analogue of switching lemma OR an explicit small identification set for SAT vs poly circuits with cheaply known labels OR a new non-natural, non-relativizing lower-bound technique.
