@@ -1,4 +1,4 @@
-# v-vs-np — Giant Splice (all repo files)
+# p-vs-np — Giant Splice (all repo files)
 
 Generated: 2025-12-24 06:23:11
 
